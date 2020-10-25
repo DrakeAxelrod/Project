@@ -13,7 +13,7 @@ public class RentalTransaction {
     private String title;
     private double rentExpense;
     private Rating rating;
-    private static final double rentalIncome = 0;
+    private static double rentalIncome;
     private final Input input = Input.getInstance();
 
     public RentalTransaction() {
@@ -58,8 +58,8 @@ public class RentalTransaction {
         return Math.round(rentalIncome * 100)/100;
     }
 
-    public double setRentalIncome(double transaction) {
-        return rentalIncome + transaction;
+    public double setRentalIncome(double total) {
+        return total;
     }
 
     public void rentItem(Inventory itemToRent) {
@@ -80,8 +80,9 @@ public class RentalTransaction {
                 rentedItem.setRentStatus(false);
                 if (customer.getCredits() == 5) {
                     userBill = 0;
+                    customer.setCredit(0);
                 } else userBill = customer.memberDiscount(daysRented * rentedItem.getDailyRent());
-                setRentalIncome(userBill);
+                rentalIncome += userBill;
                 System.out.println(input.EOL + "You rented " + rentedItem.getTitle() + " for " + daysRented + " days. " + input.EOL + "Your total is " + Math.round(userBill * 100.0) / 100.0 + " kr" + input.EOL);
                 System.out.println(rentedItem.getTitle() + " has now been returned.");
                 return userBill;

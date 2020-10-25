@@ -25,7 +25,6 @@ public class Message {
         this.readStatus = false;
     }
 
-
     public void setReadStatus(boolean status) {
         this.readStatus = status;
     }
@@ -41,7 +40,6 @@ public class Message {
     public String getMessageId() {
         return this.messageId;
     }
-
 
     public void setSubject(String subject) {
         this.subject = subject;

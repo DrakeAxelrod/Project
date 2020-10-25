@@ -25,7 +25,11 @@ public class Hub {
     public Hub() {
     }
 
-    public void readFile(){
+    private ArrayList<RentalTransaction> getRentalHistory() {
+        return rentalHistory;
+    }
+
+    protected void readFile(){
         BufferedReader br;
         String line;
         try {
@@ -46,7 +50,7 @@ public class Hub {
         }
     }
 
-    public void exportTransaction(RentalTransaction transaction){
+    private void exportTransaction(RentalTransaction transaction){
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter((new File("{code}pendent/src/transactions.txt")), true));
             String newTransaction = transaction.getCustomerId()+";"+transaction.getItemId()+";"+transaction.getTitle()+";"+transaction.getRentExpense();
@@ -57,17 +61,13 @@ public class Hub {
         }
     }
 
-    public ArrayList<RentalTransaction> getRentalHistory() {
-        return rentalHistory;
-    }
-
-    public void itemsByProfit() {
+    protected void itemsByProfit() {
         rentalHistory.sort(Comparator.comparingDouble(RentalTransaction::getRentExpense));
         Collections.reverse(rentalHistory);
         rentalHistory.forEach(System.out::println);
     }
 
-    public void bestCustomer() {
+    protected void bestCustomer() {
         customerList.sort(Comparator.comparingDouble(Customer::getSpentMoney));
         Collections.reverse(customerList);
         Customer bestCustomer = customerList.get(0);
@@ -76,7 +76,7 @@ public class Hub {
         }
     }
 
-    public void rentalFrequency() {
+    protected void rentalFrequency() {
         HashMap<String, Integer> rentalFrequency = new HashMap<>();
         for (Inventory item : inventory) {
             int rentalTimes = 0;
@@ -97,7 +97,7 @@ public class Hub {
     private RentalTransaction askRating(String customerId, Inventory rentedItem, double userBill) {
         RentalTransaction rentTransaction = null;
         Rating customerRating;
-        String ratingQuestion = input.getInput("We hope you enjoyed playing this " + rentedItem.getTitle() + " Would you like to rate it? Y/N ");
+        String ratingQuestion = input.getInput("We hope you enjoyed " + rentedItem.getTitle() + ". Would you like to rate it? Y/N ");
         if (ratingQuestion.equalsIgnoreCase("n")) {
             rentTransaction = new RentalTransaction(customerId, rentedItem.getId(), rentedItem.getTitle(), userBill);
         } else if (ratingQuestion.equalsIgnoreCase("y")) {
@@ -117,9 +117,9 @@ public class Hub {
         } else if (rating < 0) {
             rating = 0;
         }
-        String feedbackQuestion = input.getInput("Would you like to leave a review? Y/N ");
+        String feedbackQuestion = input.getInput("Would you like to leave a review? Y/N: ");
         if (feedbackQuestion.equalsIgnoreCase("y")) {
-            feedback = input.getInput("How did you experience the " + rentedItem.getTitle() + "?  Do you have any advice for other players? or did you kind of just suck at it...");
+            feedback = input.getInput("How did you experience " + rentedItem.getTitle() + "?" + Input.EOL + "Do you have any advice for other players? or did you kind of just suck at it...");
             System.out.println("Thank you for your feedback!");
             return new Rating(rating, feedback);
         } else {
@@ -127,8 +127,6 @@ public class Hub {
             return new Rating(rating);
         }
     }
-
-
 
     private Inventory retrieveItem(String rentId) {
         Inventory searchedItem;
@@ -227,7 +225,7 @@ public class Hub {
             if (user != null){
                 if (user.getMembershipType().equals("Regular")){
                     membershipRequests.put(user.getName(), user.getMembership());
-                    System.out.print("Request for Silver Membership has been submitted for review"+ Input.EOL);
+                    System.out.print("Request for Silver Membership has been submitted for review."+ Input.EOL);
                 }
             }
     }
@@ -237,12 +235,12 @@ public class Hub {
         Customer user = retrieveCustomer(name);
         if (user != null){
             if (user.getMembershipType().equals("Regular")) {
-                System.out.println("This customer does not seem to have a membership try requesting one");
+                System.out.println("This customer does not seem to have a membership try requesting one.");
             } else if (user.getMembershipType().equalsIgnoreCase("Platinum")) {
-                System.out.println("Platinum Members cannot upgrade further");
+                System.out.println("Platinum Members cannot upgrade further.");
             } else {
                 membershipRequests.put(user.getName(), customer.getMembership());
-                System.out.println("Application for membership upgrade has been submitted for review");
+                System.out.println("Your application for a membership upgrade has been submitted for review." + Input.EOL + "You will receive a message in your inbox as soon as the review is done.");
             }
         }
     }
@@ -437,17 +435,6 @@ public class Hub {
         }
     }
 
-    public void processReturn(Inventory itemToReturn, Customer customer) throws Exception {
-        double userBill = transaction.returnItem(customer, itemToReturn);
-        if (userBill != 0) {
-            RentalTransaction newTransaction = askRating(customer.getId(), itemToReturn, userBill);
-            getRentalHistory().add(newTransaction);
-            customer.applyCredits();
-            customer.setSpentMoney(userBill);
-            exportTransaction(newTransaction);
-        }
-    }
-
     protected void returnGame() {
         String name = input.getInput("Hiya! What is your name?  ");
         String returned;
@@ -473,8 +460,20 @@ public class Hub {
         }
     }
 
+    private void processReturn(Inventory itemToReturn, Customer customer) throws Exception {
+        double userBill = transaction.returnItem(customer, itemToReturn);
+        if (userBill != 0) {
+            RentalTransaction newTransaction = askRating(customer.getId(), itemToReturn, userBill);
+            getRentalHistory().add(newTransaction);
+            customer.applyCredits();
+            customer.setSpentMoney(userBill);
+            exportTransaction(newTransaction);
+        }
+    }
+
     protected void searchGames() {
         String google = input.getInput("Game Search" + Input.EOL + "Genre: ");
+        input.input.nextLine();
         for (Inventory game : inventory) {
             if (game instanceof Game){
                 if (((Game) game).getGenre().equalsIgnoreCase(google)) {
@@ -496,11 +495,11 @@ public class Hub {
 
     protected void sendMessage() {
         viewCustomer();
-        String recipientId = input.getInput(Input.EOL + "Enter the customer ID of the person you want to communicate with (for those times were communication is necessary with other humans...): ");
+        String recipientId = input.getInput(Input.EOL + "Customer ID of the person you want to contact: ");
         for (Customer customer : customerList) {
             if (customer.getId().equalsIgnoreCase(recipientId)) {
-                String senderID = input.getInput("Type your ID: ");
-                String senderName = input.getInput("Type your Name: ");
+                String senderID = input.getInput("Your customer ID: ");
+                String senderName = input.getInput("Your Name: ");
                 String subject = input.getInput("Type your Title: ");
                 String body = input.getInput("Type your message: ");
                 Message newMessage = new Message(subject, body, senderID, senderName);
@@ -512,7 +511,8 @@ public class Hub {
     }
 
     protected void viewMessages() {
-        String name = input.getInput("Type your name to view your inbox (we know you don't want to see all those unread messages! but you've got to sort it out sometime!): ");
+        String name = input.getInput("Enter your name to access your inbox: ");
+        input.input.nextLine();
         for (Customer reader : customerList) {
             if (reader.getName().equalsIgnoreCase(name) && reader.getInbox().size() != 0) {
                 Collections.reverse(reader.getInbox());
@@ -520,7 +520,7 @@ public class Hub {
                 customer.checkMessages(reader);
                 Collections.reverse(reader.getInbox());
             } else if (reader.getName().equalsIgnoreCase(name) && reader.getInbox().size() == 0) {
-                System.out.println(Input.EOL + "No messages to view (guess no one likes you...).");
+                System.out.println(Input.EOL + "No messages to view.");
             }
         }
     }
@@ -532,7 +532,6 @@ public class Hub {
             customer.getInbox().removeIf(message -> message.getMessageId().equalsIgnoreCase(removeMessage));
         }
         System.out.println("The message has been deleted.");
-        viewMessages();
     }
 
     protected void team() {

@@ -29,7 +29,7 @@ public class Menus {
     public void managerMenu() {
         String[] options = {Input.ANSI_RESET + " 1) Register Employee", " 2) Remove Employee", " 3) View Employees",
                 " 4) View Rental History ", " 5) View Items by Profit ",
-                " 6) View Rent Frequency ", " 7) View Customers by Profit ", " 8) Main Menu"};
+                " 6) View Rent Frequency ", " 7) Best Customer ", " 8) Main Menu"};
         Menus menu = new Menus(Input.EOL + Input.ANSI_BLUE + "-----Manager-Menu-----", options);
         System.out.println(menu.title);
         for (String option : options) {
